@@ -1,7 +1,7 @@
 /**
  * Web server port
  */
-const SERVER_PORT = 8080;
+const SERVER_PORT = process.env.PORT || 3010;
 
 /**
  * Session settings
