@@ -1,7 +1,7 @@
 /**
  * Web server port
  */
-const SERVER_PORT = 3010;
+const SERVER_PORT = 8080;
 
 /**
  * Session settings
