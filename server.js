@@ -80,7 +80,10 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
     mongoose.connect(process.env.MONGODB_URI || `${CONNECTION_TYPE}://${dbAuthString}${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_QUERY_PARAMS}`, {
         useNewUrlParser: true,
         useUnifiedTopology: true
-    }, () => {
+    }, (err) => {
+        if (err) {
+            console.log(err);
+        }
         console.log(`Server started on port ${srvConfig.SERVER_PORT}`);
     });
 });
