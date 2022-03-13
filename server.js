@@ -91,10 +91,14 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
 /**
  * Socket.io section
  */
+const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr']
 const io = new Server(httpServer, {
-    allowRequest: (req, callback) => {
-        const noOriginHeader = req.headers.origin === undefined;
-        callback(null, noOriginHeader);
+    origin: function (origin, callback) {
+        if (whitelistCors.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
     }
 });
 
