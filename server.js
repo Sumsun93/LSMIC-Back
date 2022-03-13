@@ -92,7 +92,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  * Socket.io section
  */
 
-const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr']
+const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:3000']
 const io = new Server(httpServer, {
     cors: {
         origin: function (origin, callback) {
@@ -153,19 +153,15 @@ io.use(function(socket, next){
             }
             else {
                 socket.emit('available', data.state);
+
+                io.emit('updateOtherUser', {
+                    userId: socket.decoded.id,
+                    newData: {
+                        isAvailable: data.state,
+                    }
+                });
             }
         })
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     })
 
     socket.on('availableOther', async (data) => {
@@ -181,19 +177,15 @@ io.use(function(socket, next){
             }
             else {
                 io.to(data.id).emit('available', data.state);
+
+                io.emit('updateOtherUser', {
+                    userId: data.id,
+                    newData: {
+                        isAvailable: data.state,
+                    }
+                });
             }
         })
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     })
 
     socket.on('updateUser', async (data) => {
@@ -201,22 +193,21 @@ io.use(function(socket, next){
             _id: socket.decoded.id,
         }, {
             ...data,
+        }, null, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                socket.emit('updateUser', {
+                    ...data,
+                });
+
+                io.emit('updateOtherUser', {
+                    userId: socket.decoded.id,
+                    newData: data,
+                });
+            }
         })
-
-        socket.emit('updateUser', {
-            ...data,
-        });
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     })
 
     socket.on('updateOtherUser', async (data) => {
@@ -226,39 +217,37 @@ io.use(function(socket, next){
             _id: data.id
         }, {
             ...data.newData,
+        }, null, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                io.to(data.id).emit('updateUser', {
+                    ...data.newData,
+                });
+
+                io.emit('updateOtherUser', {
+                    userId: data.id,
+                    newData: data.newData,
+                });
+            }
         })
-
-        io.to(data.id).emit('updateUser', {
-            ...data.newData,
-        });
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     })
 
     socket.on('deleteUser', async (user) => {
         await Users.deleteOne({
             ...user
+        }, null, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                io.emit('updateOtherUser', {
+                    deleted: true,
+                    userId: user._id,
+                });
+            }
         })
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     })
 
     socket.on('disconnect', async () => {
@@ -268,18 +257,19 @@ io.use(function(socket, next){
             _id: socket.decoded.id,
         }, {
             isAvailable: false,
+        }, null, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                io.emit('updateOtherUser', {
+                    userId: socket.decoded.id,
+                    newData: {
+                        isAvailable: false,
+                    }
+                });
+            }
         });
-
-        const allUsers = await Users.find();
-
-        io.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-        })));
     });
 });
 

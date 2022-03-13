@@ -7,6 +7,7 @@ const db = mongoose.connection;
 const Users = mongoose.model('Users');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
 const flash = require('connect-flash');
 const authenticationMiddleware = require('./../../../middleware/authenticationMiddleware');
 const bcrypt = require('bcryptjs');
@@ -17,7 +18,7 @@ authRouter.use(passport.session());
 authRouter.use(flash());
 
 //Passport middleware for Authentication
-passport.use(new LocalStrategy(
+passport.use('login', new LocalStrategy(
     function (username, password, done) {
         Users.findOne({username: username}, function (err, user) {
             if (err) {
@@ -62,13 +63,15 @@ passport.deserializeUser(function (user, done) {
  * @produces application/json
  * @consumes application/json
  */
-authRouter.post('/login', function (req, res, next) {
-    passport.authenticate('local', function (err, user, info) {
-        if (err) return next(err);
+authRouter.post('/login', async function (req, res, next) {
+    if (req.body.token) {
+        const decodedToken = jwt.decode(req.body.token.trim());
+        const user = await Users.findOne({ username: decodedToken.username, password: decodedToken.password });
 
         if (!user) {
             return res.status(401).json({ message: 'Username and/or password is incorrect.' });
         }
+
         req.logIn(user, async function (err) {
             if (err) return next(err);
 
@@ -79,6 +82,7 @@ authRouter.post('/login', function (req, res, next) {
                 isAvailable: req.session.passport.user.isAvailable,
                 phone: req.session.passport.user.phone,
                 bank: req.session.passport.user.bank,
+                password: req.session.passport.user.password,
             }), 'LeLSMICCestNous');
 
             return res.json({
@@ -91,7 +95,39 @@ authRouter.post('/login', function (req, res, next) {
                 token,
             });
         });
-    })(req, res, next);
+    }
+    else {
+        passport.authenticate('login', function (err, user, info) {
+            if (err) return next(err);
+
+            if (!user) {
+                return res.status(401).json({ message: 'Username and/or password is incorrect.' });
+            }
+            req.logIn(user, async function (err) {
+                if (err) return next(err);
+
+                const token = await jwt.sign(JSON.stringify({
+                    id: user._id,
+                    username: req.session.passport.user.username,
+                    isAdmin: req.session.passport.user.isAdmin,
+                    isAvailable: req.session.passport.user.isAvailable,
+                    phone: req.session.passport.user.phone,
+                    bank: req.session.passport.user.bank,
+                    password: req.session.passport.user.password,
+                }), 'LeLSMICCestNous');
+
+                return res.json({
+                    id: user._id,
+                    username: req.session.passport.user.username,
+                    isAdmin: req.session.passport.user.isAdmin,
+                    isAvailable: req.session.passport.user.isAvailable,
+                    phone: req.session.passport.user.phone,
+                    bank: req.session.passport.user.bank,
+                    token,
+                });
+            });
+        })(req, res, next);
+    }
 });
 
 
