@@ -19,7 +19,7 @@ const SESSION_SECRET = 'Z>lFs46=B)$u(742x5(iEH6k&m';
 const CONNECTION_TYPE = "mongodb";
 const DB_USERNAME = "";
 const DB_PASSWORD = "";
-const DB_HOST = "localhost";
+const DB_HOST = process.env.MONGODB_URI || "localhost";
 const DB_PORT = "27017";
 const DB_NAME = "express-boilerplate";
 const DB_QUERY_PARAMS = "";
