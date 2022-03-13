@@ -91,12 +91,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
 /**
  * Socket.io section
  */
-const io = new Server(httpServer, {
-    cors: {
-        origin: "0.0.0.0/0",
-        methods: ["GET", "POST"]
-    }
-});
+const io = new Server(httpServer);
 
 const Users = mongoose.model('Users');
 io.use(function(socket, next){
