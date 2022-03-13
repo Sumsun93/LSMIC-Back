@@ -91,7 +91,12 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
 /**
  * Socket.io section
  */
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+    cors: {
+        origin: "https://main.d2celo6ip9m223.amplifyapp.com/",
+        methods: ["GET", "POST"]
+    }
+});
 
 const Users = mongoose.model('Users');
 io.use(function(socket, next){
