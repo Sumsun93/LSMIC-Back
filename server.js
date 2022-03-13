@@ -93,7 +93,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  */
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "0.0.0.0/0",
         methods: ["GET", "POST"]
     }
 });
