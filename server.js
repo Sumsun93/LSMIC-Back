@@ -93,7 +93,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  */
 const io = new Server(httpServer, {
     cors: {
-        origin: "https://main.d2celo6ip9m223.amplifyapp.com/",
+        origin: "https://main.d2celo6ip9m223.amplifyapp.com",
         methods: ["GET", "POST"]
     }
 });
