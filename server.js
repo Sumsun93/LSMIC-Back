@@ -77,7 +77,7 @@ if (srvConfig.HTTPS_ENABLED) {
  * Start http server & connect to MongoDB
  */
 httpServer.listen(srvConfig.SERVER_PORT, () => {
-    mongoose.connect(`${CONNECTION_TYPE}://${dbAuthString}${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_QUERY_PARAMS}`, {
+    mongoose.connect(process.env.MONGODB_URI || `${CONNECTION_TYPE}://${dbAuthString}${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_QUERY_PARAMS}`, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     }, () => {
