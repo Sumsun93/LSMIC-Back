@@ -153,7 +153,6 @@ authRouter.post('/login', async function (req, res, next) {
  */
 authRouter.post('/register', async (req, res) => {
     let {username, password, bank, phone} = req.body;
-    console.log(req.body);
 
     if (!username || !password || !bank || !phone) return res.status(409).json({
         success: false,

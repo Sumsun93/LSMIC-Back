@@ -118,8 +118,19 @@ io.use(function(socket, next){
     else {
         next(new Error('Authentication error'));
     }
-}).on('connection', function (socket) {
+}).on('connection', async (socket) => {
     console.log(`New connection: ${socket.id}`);
+
+    const user = await Users.findOne({ _id: socket.decoded.id })
+    io.emit('connectUser', {
+        id: user._id,
+        username: user.username,
+        isAdmin: user.isAdmin,
+        isAvailable: user.isAvailable,
+        phone: user.phone,
+        bank: user.bank,
+        note: user.note,
+    })
 
     socket.on('getAllUsers', async () => {
         const user = await Users.findOne({ _id: socket.decoded.id })
