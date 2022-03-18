@@ -122,6 +122,12 @@ io.use(function(socket, next){
     console.log(`New connection: ${socket.id}`);
 
     const user = await Users.findOne({ _id: socket.decoded.id })
+
+    if (!user) {
+        socket.emit('disconnectUser');
+        return;
+    }
+
     io.emit('connectUser', {
         id: user._id,
         username: user.username,
@@ -253,6 +259,7 @@ io.use(function(socket, next){
                 console.log(err);
             }
             else {
+                io.to(user._id).emit('disconnectUser');
                 io.emit('updateOtherUser', {
                     deleted: true,
                     userId: user._id,
