@@ -1,44 +1,16 @@
 const mongoose = require('mongoose');
 
-const usersSchema = new mongoose.Schema({
-    username: {
+const badgesSchema = new mongoose.Schema({
+    label: {
         type: String,
         required: true,
     },
-    password: {
+    color: {
         type: String,
         required: true,
     },
-    bank: {
-        type: String,
-        required: true,
-    },
-    phone: {
-        type: String,
-        required: true,
-    },
-    isAdmin: {
-        type: Boolean,
-        required: false,
-        default: false,
-    },
-    isAvailable: {
-        type: Boolean,
-        required: false,
-        default: false,
-    },
-    note: {
-        type: String,
-        required: false,
-        default: '',
-    },
-    badges: {
-        type: [mongoose.ObjectId],
-        required: false,
-        default: [],
-    }
 });
 
-mongoose.model("Users", usersSchema);
+mongoose.model("Badges", badgesSchema);
 
-module.exports = usersSchema;
+module.exports = badgesSchema;

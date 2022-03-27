@@ -3,6 +3,7 @@ const authRouter = express.Router();
 require('querystring');
 const mongoose = require('mongoose');
 require('./../../../database/model/users');
+require('./../../../database/model/badges');
 const db = mongoose.connection;
 const Users = mongoose.model('Users');
 const passport = require('passport');
@@ -83,6 +84,7 @@ authRouter.post('/login', async function (req, res, next) {
                 phone: req.session.passport.user.phone,
                 bank: req.session.passport.user.bank,
                 password: req.session.passport.user.password,
+                badges: req.session.passport.user.badges,
             }), 'LeLSMICCestNous');
 
             return res.json({
@@ -92,6 +94,7 @@ authRouter.post('/login', async function (req, res, next) {
                 isAvailable: req.session.passport.user.isAvailable,
                 phone: req.session.passport.user.phone,
                 bank: req.session.passport.user.bank,
+                badges: req.session.passport.user.badges,
                 token,
             });
         });
@@ -114,6 +117,7 @@ authRouter.post('/login', async function (req, res, next) {
                     phone: req.session.passport.user.phone,
                     bank: req.session.passport.user.bank,
                     password: req.session.passport.user.password,
+                    badges: req.session.passport.user.badges,
                 }), 'LeLSMICCestNous');
 
                 return res.json({
@@ -123,6 +127,7 @@ authRouter.post('/login', async function (req, res, next) {
                     isAvailable: req.session.passport.user.isAvailable,
                     phone: req.session.passport.user.phone,
                     bank: req.session.passport.user.bank,
+                    badges: req.session.passport.user.badges,
                     token,
                 });
             });

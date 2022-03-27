@@ -31,6 +31,11 @@ const usersSchema = new mongoose.Schema({
         type: String,
         required: false,
         default: '',
+    },
+    badges: {
+        type: [mongoose.ObjectId],
+        required: false,
+        default: [],
     }
 });
 

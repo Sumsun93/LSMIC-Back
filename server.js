@@ -13,6 +13,7 @@ const fs = require('fs');
 const https = require('https');
 const { Server } = require("socket.io");
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const {CONNECTION_TYPE, DB_HOST, DB_USERNAME, DB_PASSWORD, DB_PORT, DB_NAME, DB_QUERY_PARAMS} = srvConfig;
 const dbAuthString = (DB_USERNAME && DB_PASSWORD) ? `${srvConfig.DB_USERNAME}:${srvConfig.DB_PASSWORD}@` : '';
 
@@ -107,6 +108,7 @@ const io = new Server(httpServer, {
 });
 
 const Users = mongoose.model('Users');
+const Badges = mongoose.model('Badges');
 io.use(function(socket, next){
     if (socket.handshake.query && socket.handshake.query.token){
         jwt.verify(socket.handshake.query.token, 'LeLSMICCestNous', function(err, decoded) {
@@ -136,6 +138,7 @@ io.use(function(socket, next){
         phone: user.phone,
         bank: user.bank,
         note: user.note,
+        badges: user.badges,
     })
 
     socket.on('getAllUsers', async () => {
@@ -156,7 +159,13 @@ io.use(function(socket, next){
             phone: usr.phone,
             bank: usr.bank,
             note: usr.note,
+            badges: usr.badges,
         })));
+    })
+
+    socket.on('getAllBadges', async () => {
+        const allBadges = await Badges.find();
+        socket.emit('getAllBadges', allBadges);
     })
 
     socket.on('available', async (data) => {
@@ -264,6 +273,31 @@ io.use(function(socket, next){
                     deleted: true,
                     userId: user._id,
                 });
+            }
+        })
+    })
+
+    socket.on('createBadge', async ({ label, color }) => {
+        const newBadge = new Badges({
+            label,
+            color,
+        });
+
+        await newBadge.save(function (err, data) {
+            if (err) return console.error(err);
+            io.emit('newBadge', data);
+        });
+    })
+
+    socket.on('deleteBadge', async ({ badgeId }) => {
+        await Badges.deleteOne({
+            _id: badgeId
+        }, null, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                io.emit('deleteBadge', badgeId);
             }
         })
     })
