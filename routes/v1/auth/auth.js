@@ -4,6 +4,7 @@ require('querystring');
 const mongoose = require('mongoose');
 require('./../../../database/model/users');
 require('./../../../database/model/badges');
+require('./../../../database/model/infos');
 const db = mongoose.connection;
 const Users = mongoose.model('Users');
 const passport = require('passport');

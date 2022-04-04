@@ -109,6 +109,7 @@ const io = new Server(httpServer, {
 
 const Users = mongoose.model('Users');
 const Badges = mongoose.model('Badges');
+const Infos = mongoose.model('Infos');
 io.use(function(socket, next){
     if (socket.handshake.query && socket.handshake.query.token){
         jwt.verify(socket.handshake.query.token, 'LeLSMICCestNous', function(err, decoded) {
@@ -166,6 +167,11 @@ io.use(function(socket, next){
     socket.on('getAllBadges', async () => {
         const allBadges = await Badges.find();
         socket.emit('getAllBadges', allBadges);
+    })
+
+    socket.on('getLastInfos', async () => {
+        const infos = await Infos.findOne({}, {}, { sort: { '_id' : -1 } });
+        socket.emit('editInfos', infos?.text || '');
     })
 
     socket.on('available', async (data) => {
@@ -300,6 +306,33 @@ io.use(function(socket, next){
                 io.emit('deleteBadge', badgeId);
             }
         })
+    })
+
+    socket.on('editBadge', async ({ badgeId, data }) => {
+        await Badges.updateOne({
+            _id: badgeId
+        }, {
+            ...data,
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                const badges = await Badges.find({});
+                io.emit('getAllBadges', badges);
+            }
+        })
+    })
+
+    socket.on('editInfos', (text) => {
+        const newInfos = new Infos({
+            text,
+        });
+
+        newInfos.save(function (err, data) {
+            if (err) return console.error(err);
+            io.emit('editInfos', data.text);
+        });
     })
 
     socket.on('disconnect', async () => {
