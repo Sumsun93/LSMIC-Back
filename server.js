@@ -337,24 +337,6 @@ io.use(function(socket, next){
 
     socket.on('disconnect', async () => {
         console.log(`Connection left (${socket.id})`);
-
-        await Users.updateOne({
-            _id: socket.decoded.id,
-        }, {
-            isAvailable: false,
-        }, null, (err) => {
-            if (err) {
-                console.log(err);
-            }
-            else {
-                io.emit('updateOtherUser', {
-                    userId: socket.decoded.id,
-                    newData: {
-                        isAvailable: false,
-                    }
-                });
-            }
-        });
     });
 });
 
