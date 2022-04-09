@@ -266,6 +266,43 @@ io.use(function(socket, next){
         })
     })
 
+    socket.on('updateMultiUsers', async (data) => {
+        if (!socket.decoded.isAdmin) return;
+
+        const users = await Users.find({ ...data.filter });
+
+        if (users) {
+            users.forEach(async (user) => {
+                await Users.updateOne({
+                    _id: user._id,
+                }, {
+                    ...data.newData,
+                }, null, (err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        io.to(user._id.toString()).emit('updateUser', {
+                            ...data.newData,
+                        });
+                    }
+                })
+            })
+
+            const allUsers = await Users.find();
+            socket.emit('getAllUsers', allUsers.map(usr => ({
+                id: usr._id,
+                username: usr.username,
+                isAdmin: usr.isAdmin,
+                isAvailable: usr.isAvailable,
+                phone: usr.phone,
+                bank: usr.bank,
+                note: usr.note,
+                badges: usr.badges,
+            })));
+        }
+    })
+
     socket.on('deleteUser', async (user) => {
         await Users.deleteOne({
             ...user
