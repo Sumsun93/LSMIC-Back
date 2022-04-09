@@ -290,7 +290,7 @@ io.use(function(socket, next){
             })
 
             const allUsers = await Users.find();
-            socket.emit('getAllUsers', allUsers.map(usr => ({
+            io.emit('getAllUsers', allUsers.map(usr => ({
                 id: usr._id,
                 username: usr.username,
                 isAdmin: usr.isAdmin,
