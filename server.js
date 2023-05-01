@@ -78,7 +78,7 @@ if (srvConfig.HTTPS_ENABLED) {
  * Start http server & connect to MongoDB
  */
 httpServer.listen(srvConfig.SERVER_PORT, () => {
-    mongoose.connect(process.env.MONGODB_URI || `${CONNECTION_TYPE}://${dbAuthString}${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_QUERY_PARAMS}`, {
+    mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://sumsun:cH9EXN3KntZHxwfi@cluster0.nmb9d.mongodb.net/lsmic?retryWrites=true&w=majority", {
         useNewUrlParser: true,
         useUnifiedTopology: true
     }, (err) => {
@@ -93,7 +93,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  * Socket.io section
  */
 
-const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:3000']
+const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:3000', 'https://sumsun93.github.io']
 const io = new Server(httpServer, {
     cors: {
         origin: function (origin, callback) {
