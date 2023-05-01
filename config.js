@@ -17,11 +17,11 @@ const SESSION_SECRET = 'Z>lFs46=B)$u(742x5(iEH6k&m';
  *    then the following query params is recommend: '?retryWrites=true&w=majority'
  */
 const CONNECTION_TYPE = "mongodb";
-const DB_USERNAME = "";
-const DB_PASSWORD = "";
-const DB_HOST = "localhost";
+const DB_USERNAME = "sumsun";
+const DB_PASSWORD = "cH9EXN3KntZHxwfi";
+const DB_HOST = "nmb9d.mongodb.net";
 const DB_PORT = "27017";
-const DB_NAME = "express-boilerplate";
+const DB_NAME = "";
 const DB_QUERY_PARAMS = "";
 
 /**
