@@ -19,9 +19,9 @@ const SESSION_SECRET = 'Z>lFs46=B)$u(742x5(iEH6k&m';
 const CONNECTION_TYPE = "mongodb";
 const DB_USERNAME = "sumsun";
 const DB_PASSWORD = "cH9EXN3KntZHxwfi";
-const DB_HOST = "nmb9d.mongodb.net";
+const DB_HOST = "cluster0.nmb9d.mongodb.net";
 const DB_PORT = "27017";
-const DB_NAME = "";
+const DB_NAME = "lsmic";
 const DB_QUERY_PARAMS = "";
 
 /**
