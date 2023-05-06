@@ -93,7 +93,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  * Socket.io section
  */
 
-const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:5173', 'https://sumsun93.github.io']
+const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:5173', 'https://sumsun93.github.io', 'https://helyxroleplay.github.io']
 const io = new Server(httpServer, {
     cors: {
         origin: function (origin, callback) {
