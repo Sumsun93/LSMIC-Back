@@ -93,7 +93,7 @@ httpServer.listen(srvConfig.SERVER_PORT, () => {
  * Socket.io section
  */
 
-const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:3000', 'https://sumsun93.github.io']
+const whitelistCors = ['https://main.d2celo6ip9m223.amplifyapp.com', 'https://www.lsmic.fr', 'http://localhost:5173', 'https://sumsun93.github.io']
 const io = new Server(httpServer, {
     cors: {
         origin: function (origin, callback) {
@@ -109,10 +109,12 @@ const io = new Server(httpServer, {
 
 const Users = mongoose.model('Users');
 const Badges = mongoose.model('Badges');
+const Ranks = mongoose.model('Ranks');
+const Services = mongoose.model('Services');
 const Infos = mongoose.model('Infos');
 io.use(function(socket, next){
-    if (socket.handshake.query && socket.handshake.query.token){
-        jwt.verify(socket.handshake.query.token, 'LeLSMICCestNous', function(err, decoded) {
+    if (socket.handshake.auth && socket.handshake.auth.token){
+        jwt.verify(socket.handshake.auth.token, 'LeLSMICCestNous', function(err, decoded) {
             if (err) return next(new Error('Authentication error'));
             socket.decoded = decoded;
             next();
@@ -131,7 +133,7 @@ io.use(function(socket, next){
         return;
     }
 
-    io.emit('connectUser', {
+    socket.emit('connectUser', {
         id: user._id,
         username: user.username,
         isAdmin: user.isAdmin,
@@ -140,9 +142,11 @@ io.use(function(socket, next){
         bank: user.bank,
         note: user.note,
         badges: user.badges,
+        ranks: user.ranks,
+        services: user.services,
     })
 
-    socket.on('getAllUsers', async () => {
+    socket.on('getDispatch', async () => {
         const user = await Users.findOne({ _id: socket.decoded.id })
 
         if (user.isAdmin) {
@@ -152,21 +156,38 @@ io.use(function(socket, next){
         socket.join(socket.decoded.id);
 
         const allUsers = await Users.find();
-        socket.emit('getAllUsers', allUsers.map(usr => ({
-            id: usr._id,
-            username: usr.username,
-            isAdmin: usr.isAdmin,
-            isAvailable: usr.isAvailable,
-            phone: usr.phone,
-            bank: usr.bank,
-            note: usr.note,
-            badges: usr.badges,
-        })));
+        socket.emit('getDispatch', {
+            members: allUsers.map(usr => ({
+                id: usr._id,
+                username: usr.username,
+                isAdmin: usr.isAdmin,
+                isAvailable: usr.isAvailable,
+                phone: usr.phone,
+                bank: usr.bank,
+                note: usr.note,
+                badges: usr.badges,
+                ranks: usr.ranks,
+                services: usr.services,
+            })),
+            badges: await Badges.find(),
+            ranks: await Ranks.find(),
+            services: await Services.find(),
+        });
     })
 
     socket.on('getAllBadges', async () => {
         const allBadges = await Badges.find();
         socket.emit('getAllBadges', allBadges);
+    })
+
+    socket.on('getAllRanks', async () => {
+        const allRanks = await Ranks.find();
+        socket.emit('getAllRanks', allRanks);
+    })
+
+    socket.on('getAllServices', async () => {
+        const allServices = await Services.find();
+        socket.emit('getAllServices', allServices);
     })
 
     socket.on('getLastInfos', async () => {
@@ -186,7 +207,7 @@ io.use(function(socket, next){
             else {
                 socket.emit('available', data.state);
 
-                io.emit('updateOtherUser', {
+                io.emit('updateOtherDispatchUser', {
                     userId: socket.decoded.id,
                     newData: {
                         isAvailable: data.state,
@@ -210,7 +231,7 @@ io.use(function(socket, next){
             else {
                 io.to(data.id).emit('available', data.state);
 
-                io.emit('updateOtherUser', {
+                io.emit('updateOtherDispatchUser', {
                     userId: data.id,
                     newData: {
                         isAvailable: data.state,
@@ -234,13 +255,45 @@ io.use(function(socket, next){
                     ...data,
                 });
 
-                io.emit('updateOtherUser', {
+                io.emit('updateOtherDispatchUser', {
                     userId: socket.decoded.id,
                     newData: data,
                 });
             }
         })
     })
+
+    socket.on('startPatrol', async (data) => {
+        const { patrol, mates } = data;
+
+        await Users.updateMany({
+            _id: {
+                $in: [...mates, socket.decoded.id]
+            }
+        }, {
+            $set: {
+                badges: [patrol],
+            }
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                [...mates, socket.decoded.id].forEach((id) => {
+                    io.to(id).emit('updateUser', {
+                        badges: [patrol],
+                    });
+                    io.emit('updateOtherDispatchUser', {
+                        userId: id,
+                        newData: {
+                            badges: [patrol],
+                        },
+                    });
+                });
+            }
+        })
+    })
+
 
     socket.on('updateOtherUser', async (data) => {
         if (!socket.decoded.isAdmin) return;
@@ -258,7 +311,7 @@ io.use(function(socket, next){
                     ...data.newData,
                 });
 
-                io.emit('updateOtherUser', {
+                io.emit('updateOtherDispatchUser', {
                     userId: data.id,
                     newData: data.newData,
                 });
@@ -299,6 +352,8 @@ io.use(function(socket, next){
                 bank: usr.bank,
                 note: usr.note,
                 badges: usr.badges,
+                ranks: usr.ranks,
+                services: usr.services,
             })));
         }
     })
@@ -312,7 +367,7 @@ io.use(function(socket, next){
             }
             else {
                 io.to(user._id).emit('disconnectUser');
-                io.emit('updateOtherUser', {
+                io.emit('updateOtherDispatchUser', {
                     deleted: true,
                     userId: user._id,
                 });
@@ -335,12 +390,13 @@ io.use(function(socket, next){
     socket.on('deleteBadge', async ({ badgeId }) => {
         await Badges.deleteOne({
             _id: badgeId
-        }, null, (err) => {
+        }, null, async (err) => {
             if (err) {
                 console.log(err);
             }
             else {
-                io.emit('deleteBadge', badgeId);
+                const allBadges = await Badges.find();
+                io.emit('getAllBadges', allBadges);
             }
         })
     })
@@ -357,6 +413,90 @@ io.use(function(socket, next){
             else {
                 const badges = await Badges.find({});
                 io.emit('getAllBadges', badges);
+            }
+        })
+    })
+
+    socket.on('createRank', async ({ label, color }) => {
+        const newRank = new Ranks({
+            label,
+            color,
+        });
+
+        await newRank.save(function (err, data) {
+            if (err) return console.error(err);
+            io.emit('newRank', data);
+        });
+    })
+
+    socket.on('deleteRank', async ({ rankId }) => {
+        await Ranks.deleteOne({
+            _id: rankId
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                const allRanks = await Ranks.find();
+                io.emit('getAllRanks', allRanks);
+            }
+        })
+    })
+
+    socket.on('editRank', async ({ rankId, data }) => {
+        await Ranks.updateOne({
+            _id: rankId
+        }, {
+            ...data,
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                const ranks = await Ranks.find({});
+                io.emit('getAllRanks', ranks);
+            }
+        })
+    })
+
+    socket.on('createService', async ({ label, color }) => {
+        const newService = new Services({
+            label,
+            color,
+        });
+
+        await newService.save(function (err, data) {
+            if (err) return console.error(err);
+            io.emit('newService', data);
+        });
+    })
+
+    socket.on('deleteService', async ({ serviceId }) => {
+        await Services.deleteOne({
+            _id: serviceId
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                const allServices = await Services.find();
+                io.emit('getAllServices', allServices);
+            }
+        })
+    })
+
+    socket.on('editService', async ({ serviceId, data }) => {
+        await Services.updateOne({
+            _id: serviceId
+        }, {
+            ...data,
+        }, null, async (err) => {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                const services = await Services.find({});
+                io.emit('getAllServices', services);
             }
         })
     })

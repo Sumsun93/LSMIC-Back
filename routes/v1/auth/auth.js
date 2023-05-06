@@ -4,6 +4,8 @@ require('querystring');
 const mongoose = require('mongoose');
 require('./../../../database/model/users');
 require('./../../../database/model/badges');
+require('./../../../database/model/ranks');
+require('./../../../database/model/services');
 require('./../../../database/model/infos');
 const db = mongoose.connection;
 const Users = mongoose.model('Users');
@@ -86,6 +88,8 @@ authRouter.post('/login', async function (req, res, next) {
                 bank: req.session.passport.user.bank,
                 password: req.session.passport.user.password,
                 badges: req.session.passport.user.badges,
+                ranks: req.session.passport.user.ranks,
+                services: req.session.passport.user.services,
             }), 'LeLSMICCestNous');
 
             return res.json({
@@ -96,6 +100,8 @@ authRouter.post('/login', async function (req, res, next) {
                 phone: req.session.passport.user.phone,
                 bank: req.session.passport.user.bank,
                 badges: req.session.passport.user.badges,
+                ranks: req.session.passport.user.ranks,
+                services: req.session.passport.user.services,
                 token,
             });
         });

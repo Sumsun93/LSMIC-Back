@@ -36,6 +36,16 @@ const usersSchema = new mongoose.Schema({
         type: [mongoose.ObjectId],
         required: false,
         default: [],
+    },
+    ranks: {
+        type: [mongoose.ObjectId],
+        required: false,
+        default: [],
+    },
+    services: {
+        type: [mongoose.ObjectId],
+        required: false,
+        default: [],
     }
 });
 
